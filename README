@@ -1,0 +1,20 @@
+
+	.:::: Linux Device Drivers ::::.
+
+.:: Get kernel headers and configuration
+
+. Check your current kernel version:
+	$ uname -r
+	2.6.32-25-generic-pae
+
+. Make sure to have installed kernel headers package from you distro,
+  e.g. on Ubuntu:
+	$ sudo aptitude install linux-headers-`uname -r`
+
+
+
+.:: Compile and load a simple Linux kernel module
+
+. Use the provided Makefile to compile your module
+	$ make
+	$ insmod <module.ko>
