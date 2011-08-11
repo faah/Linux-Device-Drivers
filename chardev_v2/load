@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mv 10-mysimple.rules /etc/udev/rules.d
+insmod mycdev.ko  

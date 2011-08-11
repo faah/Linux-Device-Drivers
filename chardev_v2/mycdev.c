@@ -61,10 +61,10 @@ static void mycdev_timer(unsigned long data)
 {
 	struct mycdev *mycdevp = (struct mycdev *)data;
 
-	ENTER();
+	entry_info();
 	mycdevp->dev_flag = 'y';
 	wake_up_interruptible(&mycdevp->dev_rqueue);
-	EXIT();
+	exit_info();
 }
 
 static int mycdev_open(struct inode *inode, struct file *file)
@@ -72,14 +72,14 @@ static int mycdev_open(struct inode *inode, struct file *file)
 	/* look up device info for this device file */
 	struct mycdev *mycdevp = container_of(inode->i_cdev, struct mycdev, dev_cdev);
 
-	ENTER();
+	entry_info();
 	file->private_data = mycdevp;
 	kobject_get(&mycdevp->dev_cdev.kobj); /* try_module_get? */
 
 	/* Mark the flag as 'do not read' */
 	mycdevp->dev_flag = 'n';
 
-	EXIT();
+	exit_info();
 	return 0;
 }
 
@@ -87,9 +87,9 @@ static int mycdev_close(struct inode *inode, struct file *file)
 {
 	struct mycdev *mycdevp = (struct mycdev *)file->private_data;
 
-	ENTER();
+	entry_info();
 	kobject_put(&mycdevp->dev_cdev.kobj); /* try_module_put? */
-	EXIT();
+	exit_info();
 
 	return 0;
 }
@@ -100,7 +100,7 @@ static ssize_t mycdev_read(struct file *file, char __user *ubuff,
 	ssize_t ret = 0;
 	struct mycdev *mycdevp = (struct mycdev *)file->private_data;
 
-	ENTER();
+	entry_info();
 	info("Try to get read lock");
 	/* try to get control of the read buffer */
 	if (down_trylock(&mycdevp->dev_rsem)) {
@@ -145,7 +145,7 @@ out:
 	info("*offset     : %lli", *offset);
 	info("dev_rindex  : %u", mycdevp->dev_rindex);
 	info("count       : %li", count);
-	EXIT();
+	exit_info();
 	/* return the number of characters read in */
 	return ret;
 }
@@ -156,7 +156,7 @@ static ssize_t mycdev_write(struct file *file, const char __user *ubuff,
 	ssize_t ret;
 	struct mycdev *mycdevp = (struct mycdev *)file->private_data;
 
-	ENTER();
+	entry_info();
 
 	info("Try to get write lock");
 	/* try to get control of the write buffer */
@@ -193,16 +193,16 @@ static ssize_t mycdev_write(struct file *file, const char __user *ubuff,
 out:
 	/* release the write buffer and wake anyone who's waiting for it */
 	up(&mycdevp->dev_wsem);
-	EXIT();
+	exit_info();
 	return ret;
 }
 
 static loff_t mycdev_llseek(struct file *file, loff_t position, int whence)
 {
-	ENTER();
+	entry_info();
 	/* FIXME Check whence */
 	file->f_pos = position;
-	EXIT();
+	exit_info();
 
 	return position;
 }
@@ -214,7 +214,7 @@ static int mycdev_ioctl(struct inode *inode, struct file *file,
 	struct mycdev *mycdevp = (struct mycdev *)file->private_data;
 	int ret = 0;
 
-	ENTER();
+	entry_info();
 	/* Check argument valid? */
 	if (ctlp == NULL) {
 		ret = -EFAULT;
@@ -243,7 +243,7 @@ static int mycdev_ioctl(struct inode *inode, struct file *file,
 		goto out;
 	}
 out:
-	EXIT();
+	exit_info();
 	return ret;
 }
 
@@ -264,7 +264,7 @@ static int __init mycdev_init(void)
 	int ret;
 	dev_t devno;
 
-	ENTER();
+	entry_info();
 	/* Assigning a major number */
 	ret = alloc_chrdev_region(&devno, 0, MYCDEV_MAX_MINOR, DEVICE);
 	if (ret < 0) {
@@ -334,7 +334,7 @@ static int __init mycdev_init(void)
 	}
 	info("Timer added");
 
-	EXIT();
+	exit_info();
 	return 0;
 
 destroy_device_class:
@@ -344,7 +344,7 @@ free_dev_pointer:
 unregister_chrdev:
 	unregister_chrdev_region(devno, 1);
 
-	EXIT();
+	exit_info();
 	return ret;
 }
 
@@ -352,7 +352,7 @@ static void __exit mycdev_exit(void)
 {
 	dev_t devno = MKDEV(Major, 0);
 
-	ENTER();
+	entry_info();
 	/* In reverse order of removal */
 	if (del_timer(&mycdevp->dev_timer))
 		err("timer still in use");
@@ -364,12 +364,12 @@ static void __exit mycdev_exit(void)
 	class_destroy(dev_class);
 	kfree(mycdevp);
 	unregister_chrdev_region(devno, 1);
-	EXIT();
+	exit_info();
 }
 
 module_init(mycdev_init);
 module_exit(mycdev_exit);
-MODULE_LICENSE("GPLv2");
+MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Faisal Hassan <faah87@gmail.com>");
 MODULE_DESCRIPTION(DRV_DESC ", v"DRV_VERSION);
 MODULE_SUPPORTED_DEVICE(DEVICE);

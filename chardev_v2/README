@@ -1,0 +1,14 @@
+
+To Build:
+
+$ make
+
+Goto super user mode.
+
+$ su
+# ./load
+
+
+After operation. For removing module.
+
+# unload
