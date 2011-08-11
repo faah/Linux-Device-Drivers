@@ -1,0 +1,3 @@
+# Runs chmod a+rw for mycdev events.
+
+KERNEL=="mycdev", RUN+="/bin/chmod a+rw /dev/mycdev"
